@@ -1,0 +1,47 @@
+<use name=clhep>
+
+<use name=FWCore/Framework>
+<use name=FWCore/PluginManager>
+<use name=FWCore/ParameterSet>
+
+<use name=FWCore/PluginManager>
+<use name=FWCore/Utilities>
+<use name=FWCore/Framework>
+<use name=FWCore/ParameterSet>
+<use name=DataFormats/Math>
+<use name=DataFormats/MuonReco>
+<use name=DataFormats/TrackReco>
+<use name=DataFormats/VertexReco>
+<use name=DataFormats/BTauReco>
+<use name=DataFormats/Candidate>
+<use name=DataFormats/HepMCCandidate>
+<use name=DataFormats/JetReco>
+<use name=SimDataFormats/HepMCProduct>
+<use name=RecoBTag/MCTools>
+
+<flags EDM_PLUGIN=1>
+<export>
+   <lib name=UserCodeGammaGammaSleptonSlepton>
+   <lib name=UserCodeGenGammaGammaSleptonSlepton>
+   <use name=FWCore/Framework>
+   <use name=FWCore/PluginManager>
+   <use name=FWCore/ParameterSet>
+
+   <use name=DataFormats/Common> 
+   <use name=DataFormats/TrajectoryState> 
+   <use name=DataFormats/EgammaCandidates> 
+   <use name=DataFormats/HepMCCandidate> 
+   <use name=DataFormats/EgammaReco> 
+   <use name=DataFormats/MuonReco> 
+   <use name=DataFormats/VertexReco> 
+   <use name=DataFormats/TrackReco> 
+   <use name=DataFormats/JetReco> 
+   <use name=RecoEgamma/EgammaElectronAlgos> 
+   <use name=DataFormats/TrackingRecHit> 
+   <use name=SimDataFormats/HepMCProduct> 
+   <use name=hector>
+   <use name=boost>
+
+</export>
+
+
