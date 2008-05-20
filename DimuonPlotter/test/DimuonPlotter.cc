@@ -59,7 +59,16 @@ private:
   
   // to be used for root output tree
   TFile *thefile;
-  TTree *smalltree;
+
+  TH1F *m_mumu;
+  TH1F *m_mutrk;
+  TH1F *m_ups_mumu;
+  TH1F *m_ups_mutrk;
+  TH1F *m_jpsi_mumu;
+  TH1F *m_jpsi_mutrk;
+  TH1F *m_z_mumu;
+  TH1F *m_z_mutrk;
+  TH1F *triggerbits;
 
   edm::TriggerNames trigNames ;
 
@@ -71,7 +80,7 @@ private:
   double DimuonCand_mumuonesamuon_mass[10]; 
   double MuonCand_pt1[10], MuonCand_pt2[10];
   double MuonCand_eta1[10], MuonCand_eta2[10];
-  int TriggerBits[10];
+
 };
 
 
@@ -84,27 +93,35 @@ DimuonPlotter::DimuonPlotter(const edm::ParameterSet& iConfig)
   thefile = new TFile("dimuon.plot.root","recreate");
   thefile->cd();
 
-  smalltree= new TTree("ntp1","ntp1");
-
-  smalltree->Branch("nDimuonCand",&nDimuonCand,"nDimuonCand/I");
-  smalltree->Branch("nTrkDimuonCand",&nTrkDimuonCand,"nTrkDimuonCand/I"); 
-  //  smalltree->Branch("nSADimuonCand",&nSADimuonCand,"nSADimuonCand/I"); 
-
-  smalltree->Branch("nTrig",&nTrig,"nTrig/I");
-  smalltree->Branch("TriggerBits",TriggerBits,"TriggerBits[nTrig]/I");
-  smalltree->Branch("DimuonCand_goodmumu_mass",DimuonCand_goodmumu_mass,"DimuonCand_goodmumu_mass[nDimuonCand]/D");
-  smalltree->Branch("DimuonCand_mumuonetrack_mass",DimuonCand_mumuonetrack_mass,"DimuonCand_mumuonetrack_mass[nTrkDimuonCand]/D"); 
-  smalltree->Branch("MuonCand_pt1",MuonCand_pt1,"MuonCand_pt[nDimuonCand]/D");
-  smalltree->Branch("MuonCand_eta1",MuonCand_eta1,"MuonCand_eta[nDimuonCand]/D");
-  smalltree->Branch("MuonCand_pt2",MuonCand_pt2,"MuonCand_pt2[nDimuonCand]/D"); 
-  smalltree->Branch("MuonCand_eta2",&MuonCand_eta2,"MuonCand_eta2[nDimuonCand]/D"); 
-  //  smalltree->Branch("DimuonCand_mumuonesamuon_mass",DimuonCand_mumuonesamuon_mass,"DimuonCand_mumuonesamuon_mass[nSADimuonCand]/D");  
+  m_mumu = new TH1F("m_mumu","m_mumu",200,0,200);
+  m_mutrk = new TH1F("m_mutrk","m_mutrk",200,0,200); 
+  m_jpsi_mumu = new TH1F("m_jpsi_mumu","m_jpsi_mumu",20,1,5); 
+  m_jpsi_mutrk = new TH1F("m_jpsi_mutrk","m_jpsi_mutrk",20,1,5);  
+  m_ups_mumu = new TH1F("m_ups_mumu","m_ups_mumu",40,7,11); 
+  m_ups_mutrk = new TH1F("m_ups_mutrk","m_ups_mutrk",40,7,11);  
+  m_z_mumu = new TH1F("m_z_mumu","m_z_mumu",100,60,120);  
+  m_z_mutrk = new TH1F("m_z_mutrk","m_z_mutrk",100,60,120);   
+  triggerbits = new TH1F("triggerbits","triggerbits",4,0,4);
+  triggerbits->GetXaxis()->SetBinLabel(1,"HLT1MuonPrescalePt5");
+  triggerbits->GetXaxis()->SetBinLabel(2,"HLT1MuonPrescalePt7x7"); 
+  triggerbits->GetXaxis()->SetBinLabel(3,"HLT1MuonIso"); 
+  triggerbits->GetXaxis()->SetBinLabel(4,"HLT2MuonNonIso"); 
 
 }
 
 
 DimuonPlotter::~DimuonPlotter() 
 {  
+  m_mumu->Write();
+  m_mutrk->Write(); 
+  m_jpsi_mumu->Write(); 
+  m_jpsi_mutrk->Write();  
+  m_ups_mumu->Write();  
+  m_ups_mutrk->Write();   
+  m_z_mumu->Write();  
+  m_z_mutrk->Write();   
+  triggerbits->Write();
+
   thefile->Write();
   thefile->Close();
 }
@@ -135,30 +152,22 @@ void DimuonPlotter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       if ( trigNames.triggerNames().at(i) == "HLT1MuonPrescalePt5" )     
 	{
 	  if ( hltResults->accept(i) )
-	    TriggerBits[0] = 1;
-	  else
-	    TriggerBits[0] = 0;
+	    triggerbits->Fill(0);
 	}
-      else if ( trigNames.triggerNames().at(i) == "HLT1MuonPrescalePt7x7" )
+      if ( trigNames.triggerNames().at(i) == "HLT1MuonPrescalePt7x7" )
 	{
           if ( hltResults->accept(i) ) 
-            TriggerBits[1] = 1; 
-          else 
-            TriggerBits[1] = 0; 
+	    triggerbits->Fill(1);
 	}
-      else if ( trigNames.triggerNames().at(i) == "HLT1MuonIso" )
+      if ( trigNames.triggerNames().at(i) == "HLT1MuonIso" )
         { 
           if ( hltResults->accept(i) ) 
-            TriggerBits[2] = 1; 
-          else 
-            TriggerBits[2] = 0; 
+	    triggerbits->Fill(2);
         } 
-      else if ( trigNames.triggerNames().at(i) == "HLT2MuonNonIso" )
+      if ( trigNames.triggerNames().at(i) == "HLT2MuonNonIso" )
         {  
           if ( hltResults->accept(i) ) 
-            TriggerBits[3] = 1; 
-          else 
-            TriggerBits[3] = 0; 
+	    triggerbits->Fill(3);
         }  
 
 
@@ -174,6 +183,12 @@ void DimuonPlotter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
      MuonCand_pt2[nDimuonCand] = dimuon->daughter(1)->pt();
      MuonCand_eta1[nDimuonCand] = dimuon->daughter(0)->eta();
      MuonCand_eta2[nDimuonCand] = dimuon->daughter(1)->eta();
+
+     m_mumu->Fill(DimuonCand_goodmumu_mass[nDimuonCand]);
+     m_jpsi_mumu->Fill(DimuonCand_goodmumu_mass[nDimuonCand]); 
+     m_ups_mumu->Fill(DimuonCand_goodmumu_mass[nDimuonCand]);  
+     m_z_mumu->Fill(DimuonCand_goodmumu_mass[nDimuonCand]);  
+
      nDimuonCand++;
    }
 
@@ -183,6 +198,12 @@ void DimuonPlotter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
    nTrkDimuonCand=0; 
    for( trkdimuon = trkdimuons->begin(); trkdimuon != trkdimuons->end() && nTrkDimuonCand<DIMUONMAX; ++ trkdimuon ) { 
      DimuonCand_mumuonetrack_mass[nTrkDimuonCand]=trkdimuon->mass(); 
+
+     m_mutrk->Fill(DimuonCand_mumuonetrack_mass[nTrkDimuonCand]);
+     m_jpsi_mutrk->Fill(DimuonCand_mumuonetrack_mass[nTrkDimuonCand]);
+     m_ups_mutrk->Fill(DimuonCand_mumuonetrack_mass[nTrkDimuonCand]); 
+     m_z_mutrk->Fill(DimuonCand_mumuonetrack_mass[nTrkDimuonCand]); 
+
      nTrkDimuonCand++; 
    } 
 
@@ -196,7 +217,6 @@ void DimuonPlotter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
    //   }  
 
  
-  smalltree->Fill();
 }
 
 
