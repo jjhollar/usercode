@@ -1,0 +1,36 @@
+<use name=clhep>
+
+<use name=FWCore/PluginManager>
+<use name=FWCore/Utilities>
+<use name=FWCore/Framework>
+<use name=FWCore/ParameterSet>
+<use name=DataFormats/Math>
+<use name=DataFormats/TrackReco>
+<use name=DataFormats/VertexReco>
+<use name=DataFormats/BTauReco>
+<use name=RecoBTag/MCTools>
+<use name=DataFormats/Candidate>
+<use name=DataFormats/HepMCCandidate>
+<use name=DataFormats/JetReco>
+<use name=SimDataFormats/HepMCProduct>
+<use name=RecoVertex/TertiaryTracksVertexFinder>
+<use name=RecoVertex/KalmanTrimmedVertexFinder>
+<use name=DataFormats/VertexReco>
+<use name=RecoVertex/ConfigurableVertexReco>
+<use name=CondFormats/JetMETObjects>
+<use name=RecoBTag/SecondaryVertex>
+
+<library file=BtagMCTest.cc name=BtagMCTest>
+  <use name=FWCore/Framework>
+  <flags EDM_PLUGIN=1>
+</library>
+
+<library file=JetPartonAssocTest.cc name=JetPartonAssocTest>
+  <use name=FWCore/Framework>
+  <flags EDM_PLUGIN=1>
+</library>
+
+<library file=NewTertVertex.cc name=NewTertVertex> 
+  <use name=FWCore/Framework>
+  <flags EDM_PLUGIN=1>
+</library>	
