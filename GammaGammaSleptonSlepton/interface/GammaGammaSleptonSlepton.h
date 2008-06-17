@@ -28,7 +28,6 @@
 #include "DataFormats/JetReco/interface/CaloJetCollection.h"
 #include "DataFormats/JetReco/interface/CaloJet.h"
 
-#include "UserCode/GammaGammaSleptonSlepton/interface/AcceptanceTableHelper.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
 
@@ -84,6 +83,7 @@ private:
   double MuonCand_pt[100];
   double MuonCand_phi[10];
   double MuonCand_e[100];
+  double MuonCandTrack_p[100];
   int MuonCand_charge[100];
 
   double MuonCand_ecalisor3[100];
@@ -92,15 +92,36 @@ private:
   double MuonCand_ecalisor5[100]; 
   double MuonCand_hcalisor5[100]; 
   double MuonCand_trkisor5[100];
+  double MuonCand_vtxx[500];
+  double MuonCand_vtxy[500]; 
+  double MuonCand_vtxz[500]; 
+
+  int nTrackCand; 
+  int TRACKMAX;// used to set maximum of arrays 
+  double TrackCand_px[500]; 
+  double TrackCand_py[500]; 
+  double TrackCand_pz[500]; 
+  double TrackCand_p[500]; 
+  double TrackCand_eta[500]; 
+  double TrackCand_pt[500]; 
+  double TrackCand_phi[500]; 
+  double TrackCand_e[500]; 
+  int TrackCand_charge[500]; 
+  double TrackCand_vtxx[500]; 
+  double TrackCand_vtxy[500];  
+  double TrackCand_vtxz[500];  
+
 
   int nJetCand;
+  int nJetCandE20;
   int JETMAX;// used to set maximum of arrays
-  double JetCand_px[300];
-  double JetCand_py[300];
-  double JetCand_pz[300];
-  double JetCand_e[300];
-  double JetCand_eta[300];
-  double JetCand_phi[300];
+  double JetCand_px[500];
+  double JetCand_py[500];
+  double JetCand_pz[500];
+  double JetCand_e[500];
+  double JetCand_eta[500];
+  double JetCand_phi[500];
+
   double eventWeight;
   int PHOTMAX;
   int PROTMAX;
@@ -163,17 +184,14 @@ private:
   
   double GenMuMu_mass;
   double MuMu_mass;
+  double MuMu_vtxx;
+  double MuMu_vtxy;
+  double MuMu_vtxz;
+  int MuMu_extratracksz10mm; 
+  int MuMu_extratracksz5mm; 
+  int MuMu_extratracksz2mm; 
+  int MuMu_extratracksz1mm;
   double GenProPro_mass;
-
-  AcceptanceTableHelper helper420beam1;   
-  AcceptanceTableHelper helper420beam2;   
-  AcceptanceTableHelper helper220beam1;   
-  AcceptanceTableHelper helper220beam2;   
-  AcceptanceTableHelper helper420a220beam1;   
-  AcceptanceTableHelper helper420a220beam2;   
- 
-  float acc420b1, acc220b1, acc420and220b1, acc420or220b1; // beam 1 (clockwise)   
-  float acc420b2, acc220b2, acc420and220b2, acc420or220b2; // beam 2 (anti-clockwise)   
 
 };
 #endif

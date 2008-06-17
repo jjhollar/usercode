@@ -19,7 +19,7 @@
 #include <DataFormats/Common/interface/Handle.h>
 #include <FWCore/Framework/interface/ESHandle.h>
 
-#include "DataFormats/MuonReco/interface/MuIsoDeposit.h" 
+#include "DataFormats/RecoCandidate/interface/IsoDeposit.h" 
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/Common/interface/Ref.h"
@@ -38,8 +38,6 @@
 #include "FWCore/Framework/interface/TriggerNames.h"
 
 #include "UserCode/GammaGammaSleptonSlepton/interface/GenGammaGammaSleptonSlepton.h"
-//#include "UserCode/GammaGammaSleptonSlepton/interface/AcceptanceTableHelper.h"
-#include "FastSimulation/ProtonTaggers/interface/AcceptanceTableHelper.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
 
@@ -63,22 +61,6 @@ GenGammaGammaSleptonSlepton::GenGammaGammaSleptonSlepton(const edm::ParameterSet
   ELEMAX = 10;
 
   rootfilename       = iConfig.getUntrackedParameter<std::string>("outfilename","gammagamma.anal.root");
-
-  edm::FileInPath myDataFile("FastSimulation/ProtonTaggers/data/acceptance_420_220.root");  
-  std::string fullPath = myDataFile.fullPath();  
-  std::cout << "Opening " << fullPath << std::endl;  
-  TFile f(fullPath.c_str());  
-  if (f.Get("description") != NULL)  
-    std::cout << "Description found: " << f.Get("description")->GetTitle() << std::endl;  
-    
-  std::cout << "Reading acceptance tables " << std::endl;  
- 
-  helper420beam1.Init(f, "a420");  
-  helper420beam2.Init(f, "a420_b2");  
-  helper220beam1.Init(f, "a220");  
-  helper220beam2.Init(f, "a220_b2");  
-  helper420a220beam1.Init(f, "a420a220");  
-  helper420a220beam2.Init(f, "a420a220_b2");  
 
   thefile = new TFile(rootfilename.c_str(),"recreate"); 
   thefile->cd(); 
@@ -168,11 +150,6 @@ GenGammaGammaSleptonSlepton::GenGammaGammaSleptonSlepton(const edm::ParameterSet
   smalltree->Branch("GenElEl_dpt",&GenElEl_dpt,"GenElEl_dpt/D");
   smalltree->Branch("GenProPro_mass",&GenProPro_mass,"GenProPro_mass/D");
 
-  smalltree->Branch("acc420b1",&acc420b1,"acc420b1/F"); 
-  smalltree->Branch("acc420b2",&acc420b2,"acc420b2/F");  
-  smalltree->Branch("acc220b1",&acc220b1,"acc220b1/F");  
-  smalltree->Branch("acc220b2",&acc220b2,"acc220b2/F");  
-
 }
 
 
@@ -206,10 +183,6 @@ void GenGammaGammaSleptonSlepton::analyze(const edm::Event& iEvent, const edm::E
   GenElEl_mass = -1.0; GenElEl_dphi = -1.0; GenElEl_dpt = -1.0;
 
   double highesteproton = 0.0;
-
-  acc420b1 = acc220b1 = acc420and220b1 = acc420or220b1 = 0;   
-  acc420b2 = acc220b2 = acc420and220b2 = acc420or220b2 = 0;   
-
 
   HepMC::GenEvent * myGenEvent = new  HepMC::GenEvent(*(evt->GetEvent()));
 
@@ -317,44 +290,6 @@ void GenGammaGammaSleptonSlepton::analyze(const edm::Event& iEvent, const edm::E
 
 	      if((GenProtCand_pz[nGenProtCand] > 2500.0) || (GenProtCand_pz[nGenProtCand] < -2500.0))
 		{ 
-		  if(GenProtCand_pz[nGenProtCand] > 0) 
-		    { 
-		      acc420b1       = helper420beam1.GetAcceptance(t, xi, phi);  
-		      acc220b1       = helper220beam1.GetAcceptance(t, xi, phi);  
-		      acc420and220b1 = helper420a220beam1.GetAcceptance(t, xi, phi);  
-		      acc420or220b1  = acc420b1 + acc220b1 - acc420and220b1;  
-		    } 
-		  else if(GenProtCand_pz[nGenProtCand] < 0) 
-		    { 
-		      acc420b2       = helper420beam2.GetAcceptance(t, xi, phi);  
-		      acc220b2       = helper220beam2.GetAcceptance(t, xi, phi);  
-		      acc420and220b2 = helper420a220beam2.GetAcceptance(t, xi, phi);  
-		      acc420or220b2  = acc420b2 + acc220b2 - acc420and220b2;  
-		    } 
-
-		  //		  cout << "JJH: acc420b1 = " << acc420b1 << ", acc420b2 = " << acc420b2 << ", acc220b1 = " << acc220b1 << ", acc220b2 = " << acc220b2 << endl;
-
-		  if(acc420b1 > 0.5)  
-		    { 
-		      acc420b1 = 1; 
-		      GenProtCand_tag[nGenProtCand] = 420;
-		    } 
-		  if(acc420b2 > 0.5)  
-		    { 
-		      acc420b2 = 1; 
-		      GenProtCand_tag[nGenProtCand] = -420;
-		    }  
-		  if(acc220b1 > 0.5) 
-		    {  
-		      acc220b1 = 1;  
-		      GenProtCand_tag[nGenProtCand] = 220;
-		    } 
-		  if(acc220b2 > 0.5) 
-		    { 
-		      acc220b2 = 1; 
-		      GenProtCand_tag[nGenProtCand] = -220;
-		    } 
-
 		} 
 
 	      nGenProtCand++;

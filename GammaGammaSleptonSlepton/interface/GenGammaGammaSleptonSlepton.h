@@ -28,7 +28,6 @@
 #include "DataFormats/JetReco/interface/CaloJetCollection.h"
 #include "DataFormats/JetReco/interface/CaloJet.h"
 
-#include "UserCode/GammaGammaSleptonSlepton/interface/AcceptanceTableHelper.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
 
@@ -150,16 +149,6 @@ private:
   double GenMuMu_dphi;
   double MuMu_mass;
   double GenProPro_mass;
-
-  AcceptanceTableHelper helper420beam1;   
-  AcceptanceTableHelper helper420beam2;   
-  AcceptanceTableHelper helper220beam1;   
-  AcceptanceTableHelper helper220beam2;   
-  AcceptanceTableHelper helper420a220beam1;   
-  AcceptanceTableHelper helper420a220beam2;   
- 
-  float acc420b1, acc220b1, acc420and220b1, acc420or220b1; // beam 1 (clockwise)   
-  float acc420b2, acc220b2, acc420and220b2, acc420or220b2; // beam 2 (anti-clockwise)   
 
 };
 #endif

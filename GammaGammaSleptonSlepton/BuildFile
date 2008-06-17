@@ -18,6 +18,15 @@
 <use name=DataFormats/JetReco>
 <use name=SimDataFormats/HepMCProduct>
 <use name=RecoBTag/MCTools>
+<use name=FWCore/MessageLogger>
+<use name=RecoVertex/LinearizationPointFinders>
+<use name=RecoVertex/VertexPrimitives>
+<use name=RecoVertex/VertexTools>
+<use name=SimDataFormats/TrackingAnalysis>
+<use name=SimTracker/TrackAssociation>
+<use name=TrackingTools/TrajectoryState>
+<use name=TrackingTools/TransientTrack>
+<use name=RecoVertex/KalmanVertexFit>
 
 <flags EDM_PLUGIN=1>
 <export>
@@ -41,6 +50,15 @@
    <use name=SimDataFormats/HepMCProduct> 
    <use name=hector>
    <use name=boost>
+
+  <use name=RecoVertex/VertexPrimitives>
+  <use name=RecoVertex/VertexTools>
+  <use name=SimDataFormats/TrackingAnalysis>
+  <use name=SimTracker/TrackAssociation>
+  <use name=TrackingTools/TransientTrack>
+  <use name=RecoVertex/KalmanVertexFit>
+  <use name=rootcore>
+  <lib name=RecoVertexKalmanVertexFit>
 
 </export>
 

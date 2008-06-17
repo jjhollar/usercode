@@ -19,7 +19,7 @@
 #include <DataFormats/Common/interface/Handle.h>
 #include <FWCore/Framework/interface/ESHandle.h>
 
-#include "DataFormats/MuonReco/interface/MuIsoDeposit.h" 
+#include "DataFormats/RecoCandidate/interface/IsoDeposit.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "DataFormats/Common/interface/Ref.h"
@@ -38,15 +38,23 @@
 #include "FWCore/Framework/interface/TriggerNames.h"
 
 #include "UserCode/GammaGammaSleptonSlepton/interface/GammaGammaSleptonSlepton.h"
-//#include "UserCode/GammaGammaSleptonSlepton/interface/AcceptanceTableHelper.h"
-#include "FastSimulation/ProtonTaggers/interface/AcceptanceTableHelper.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
+
+// Vertexing
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
+#include "TrackingTools/Records/interface/TransientTrackRecord.h"
+#include "TrackingTools/TransientTrack/interface/TransientTrack.h"
+#include "RecoVertex/VertexPrimitives/interface/TransientVertex.h"
+#include "RecoVertex/VertexPrimitives/interface/ConvertError.h"
+#include "SimTracker/Records/interface/TrackAssociatorRecord.h"
+#include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 
 #include <TFile.h>
 #include <TH1D.h>
 #include <TTree.h>
-
 
 using namespace std;
 using namespace reco;
@@ -61,26 +69,11 @@ GammaGammaSleptonSlepton::GammaGammaSleptonSlepton(const edm::ParameterSet& iCon
   ELEMAX=100;
   MUONMAX=100;
   JETMAX=300;
+  TRACKMAX=300;
   PHOTMAX=100;
   PROTMAX=100;
 
   rootfilename       = iConfig.getUntrackedParameter<std::string>("outfilename","gammagamma.anal.root");
-
-  edm::FileInPath myDataFile("FastSimulation/ProtonTaggers/data/acceptance_420_220.root");  
-  std::string fullPath = myDataFile.fullPath();  
-  std::cout << "Opening " << fullPath << std::endl;  
-  TFile f(fullPath.c_str());  
-  if (f.Get("description") != NULL)  
-    std::cout << "Description found: " << f.Get("description")->GetTitle() << std::endl;  
-    
-  std::cout << "Reading acceptance tables " << std::endl;  
- 
-  helper420beam1.Init(f, "a420");  
-  helper420beam2.Init(f, "a420_b2");  
-  helper220beam1.Init(f, "a220");  
-  helper220beam2.Init(f, "a220_b2");  
-  helper420a220beam1.Init(f, "a420a220");  
-  helper420a220beam2.Init(f, "a420a220_b2");  
 
   thefile = new TFile(rootfilename.c_str(),"recreate"); 
   thefile->cd(); 
@@ -110,6 +103,15 @@ GammaGammaSleptonSlepton::GammaGammaSleptonSlepton(const edm::ParameterSet& iCon
 //   smalltree->Branch("JetCand_eta",JetCand_eta,"JetCand_eta[nJetCand]/D");
 //   smalltree->Branch("JetCand_phi",JetCand_phi,"JetCand_phi[nJetCand]/D");
 
+  smalltree->Branch("nJetCand",&nJetCand,"nJetCand/I");
+  smalltree->Branch("nJetCandE20",&nJetCandE20,"nJetCandE20/I");
+  smalltree->Branch("JetCand_px",JetCand_px,"JetCand_px[nJetCand]/D");
+  smalltree->Branch("JetCand_py",JetCand_py,"JetCand_py[nJetCand]/D");
+  smalltree->Branch("JetCand_pz",JetCand_pz,"JetCand_pz[nJetCand]/D");
+  smalltree->Branch("JetCand_e",JetCand_e,"JetCand_e[nJetCand]/D");
+  smalltree->Branch("JetCand_eta",JetCand_eta,"JetCand_eta[nJetCand]/D");
+  smalltree->Branch("JetCand_phi",JetCand_phi,"JetCand_phi[nJetCand]/D");
+
   smalltree->Branch("nMuonCand",&nMuonCand,"nMuonCand/I");
   smalltree->Branch("MuonCand_px",MuonCand_px,"MuonCand_px[nMuonCand]/D");
   smalltree->Branch("MuonCand_py",MuonCand_py,"MuonCand_py[nMuonCand]/D");
@@ -124,6 +126,21 @@ GammaGammaSleptonSlepton::GammaGammaSleptonSlepton(const edm::ParameterSet& iCon
   smalltree->Branch("MuonCand_hcalisor5",MuonCand_hcalisor5,"MuonCand_hcalisor5[nMuonCand]/D"); 
   smalltree->Branch("MuonCand_ecalisor5",MuonCand_ecalisor5,"MuonCand_ecalisor5[nMuonCand]/D"); 
   smalltree->Branch("MuonCand_trkisor5",MuonCand_trkisor5,"MuonCand_trkisor5[nMuonCand]/D");
+  smalltree->Branch("MuonCand_vtxx",MuonCand_vtxx,"MuonCand_vtxx[nMuonCand]/D");
+  smalltree->Branch("MuonCand_vtxy",MuonCand_vtxy,"MuonCand_vtxy[nMuonCand]/D"); 
+  smalltree->Branch("MuonCand_vtxz",MuonCand_vtxz,"MuonCand_vtxz[nMuonCand]/D"); 
+
+  smalltree->Branch("nTrackCand",&nTrackCand,"nTrackCand/I"); 
+  smalltree->Branch("TrackCand_px",TrackCand_px,"TrackCand_px[nTrackCand]/D"); 
+  smalltree->Branch("TrackCand_py",TrackCand_py,"TrackCand_py[nTrackCand]/D"); 
+  smalltree->Branch("TrackCand_pz",TrackCand_pz,"TrackCand_pz[nTrackCand]/D"); 
+  smalltree->Branch("TrackCand_p",TrackCand_p,"TrackCand_p[nTrackCand]/D"); 
+  smalltree->Branch("TrackCand_pt",TrackCand_pt,"TrackCand_pt[nTrackCand]/D"); 
+  smalltree->Branch("TrackCand_eta",TrackCand_eta,"TrackCand_eta[nTrackCand]/D"); 
+  smalltree->Branch("TrackCand_phi",TrackCand_phi,"TrackCand_phi[nTrackCand]/D"); 
+  smalltree->Branch("TrackCand_vtxx",TrackCand_vtxx,"TrackCand_vtxx[nTrackCand]/D"); 
+  smalltree->Branch("TrackCand_vtxy",TrackCand_vtxy,"TrackCand_vtxy[nTrackCand]/D");  
+  smalltree->Branch("TrackCand_vtxz",TrackCand_vtxz,"TrackCand_vtxz[nTrackCand]/D");  
 
   smalltree->Branch("nGenMuonCand",&nGenMuonCand,"nGenMuonCand/I");
   smalltree->Branch("GenMuonCand_px",GenMuonCand_px,"GenMuonCand_px[nGenMuonCand]/D");
@@ -182,12 +199,15 @@ GammaGammaSleptonSlepton::GammaGammaSleptonSlepton(const edm::ParameterSet& iCon
 
   smalltree->Branch("GenMuMu_mass",&GenMuMu_mass,"GenMuMu_mass/D");
   smalltree->Branch("MuMu_mass",&MuMu_mass,"MuMu_mass/D");
-  //  smalltree->Branch("GenProPro_mass",&GenProPro_mass,"GenProPro_mass/D");
+  smalltree->Branch("MuMu_vtxx",&MuMu_vtxx,"MuMu_vtxx/D");
+  smalltree->Branch("MuMu_vtxy",&MuMu_vtxy,"MuMu_vtxy/D"); 
+  smalltree->Branch("MuMu_vtxz",&MuMu_vtxz,"MuMu_vtxz/D"); 
+  smalltree->Branch("MuMu_extratracksz10mm",&MuMu_extratracksz10mm,"MuMu_extratracksz10mm/I");
+  smalltree->Branch("MuMu_extratracksz5mm",&MuMu_extratracksz5mm,"MuMu_extratracksz5mm/I"); 
+  smalltree->Branch("MuMu_extratracksz2mm",&MuMu_extratracksz2mm,"MuMu_extratracksz2mm/I"); 
+  smalltree->Branch("MuMu_extratracksz1mm",&MuMu_extratracksz1mm,"MuMu_extratracksz1mm/I"); 
 
-  smalltree->Branch("acc420b1",&acc420b1,"acc420b1/F"); 
-  smalltree->Branch("acc420b2",&acc420b2,"acc420b2/F");  
-  smalltree->Branch("acc220b1",&acc220b1,"acc220b1/F");  
-  smalltree->Branch("acc220b2",&acc220b2,"acc220b2/F");  
+  //  smalltree->Branch("GenProPro_mass",&GenProPro_mass,"GenProPro_mass/D");
 
 }
 
@@ -237,12 +257,9 @@ void GammaGammaSleptonSlepton::analyze(const edm::Event& iEvent, const edm::Even
   nGenNeutCand = 0;
   nGenPhotCand = 0;
   MuMu_mass = 0.0;
+  MuMu_extratracksz1mm = 0; MuMu_extratracksz2mm = 0; MuMu_extratracksz5mm = 0; MuMu_extratracksz10mm = 0; 
   double highesteproton = 0.0;
   double highestptmuon = 0.0;
-
-  acc420b1 = acc220b1 = acc420and220b1 = acc420or220b1 = 0;   
-  acc420b2 = acc220b2 = acc420and220b2 = acc420or220b2 = 0;   
-
 
   HepMC::GenEvent * myGenEvent = new  HepMC::GenEvent(*(evt->GetEvent()));
 
@@ -322,44 +339,6 @@ void GammaGammaSleptonSlepton::analyze(const edm::Event& iEvent, const edm::Even
 
 	      if((GenProtCand_pz[nGenProtCand] > 2500.0) || (GenProtCand_pz[nGenProtCand] < -2500.0))
 		{ 
-		  if(GenProtCand_pz[nGenProtCand] > 0) 
-		    { 
-		      acc420b1       = helper420beam1.GetAcceptance(t, xi, phi);  
-		      acc220b1       = helper220beam1.GetAcceptance(t, xi, phi);  
-		      acc420and220b1 = helper420a220beam1.GetAcceptance(t, xi, phi);  
-		      acc420or220b1  = acc420b1 + acc220b1 - acc420and220b1;  
-		    } 
-		  else if(GenProtCand_pz[nGenProtCand] < 0) 
-		    { 
-		      acc420b2       = helper420beam2.GetAcceptance(t, xi, phi);  
-		      acc220b2       = helper220beam2.GetAcceptance(t, xi, phi);  
-		      acc420and220b2 = helper420a220beam2.GetAcceptance(t, xi, phi);  
-		      acc420or220b2  = acc420b2 + acc220b2 - acc420and220b2;  
-		    } 
-
-		  //		  cout << "JJH: acc420b1 = " << acc420b1 << ", acc420b2 = " << acc420b2 << ", acc220b1 = " << acc220b1 << ", acc220b2 = " << acc220b2 << endl;
-
-		  if(acc420b1 > 0.5)  
-		    { 
-		      acc420b1 = 1; 
-		      GenProtCand_tag[nGenProtCand] = 420;
-		    } 
-		  if(acc420b2 > 0.5)  
-		    { 
-		      acc420b2 = 1; 
-		      GenProtCand_tag[nGenProtCand] = -420;
-		    }  
-		  if(acc220b1 > 0.5) 
-		    {  
-		      acc220b1 = 1;  
-		      GenProtCand_tag[nGenProtCand] = 220;
-		    } 
-		  if(acc220b2 > 0.5) 
-		    { 
-		      acc220b2 = 1; 
-		      GenProtCand_tag[nGenProtCand] = -220;
-		    } 
-
 		} 
 
 	      nGenProtCand++;
@@ -408,8 +387,8 @@ void GammaGammaSleptonSlepton::analyze(const edm::Event& iEvent, const edm::Even
     }
   }
 
-  //  edm::Handle<reco::PhotonCollection> photons;
-  //  iEvent.getByLabel("photons",photons);
+  edm::Handle<reco::PhotonCollection> photons;
+  iEvent.getByLabel("photons",photons);
 
   edm::Handle<reco::MuonCollection> muons;
   //  iEvent.getByLabel("paramMuons", "ParamGlobalMuons", muons);
@@ -426,13 +405,19 @@ void GammaGammaSleptonSlepton::analyze(const edm::Event& iEvent, const edm::Even
      MuonCand_phi[nMuonCand]=muon->phi();
      MuonCand_charge[nMuonCand]=muon->charge();
 
+     MuonCandTrack_p[nMuonCand] = muon->track()->p();
+
+     MuonCand_vtxx[nMuonCand]=muon->vertex().x(); 
+     MuonCand_vtxy[nMuonCand]=muon->vertex().y();  
+     MuonCand_vtxz[nMuonCand]=muon->vertex().z();  
+
      // Isolation
-     MuonCand_hcalisor3[nMuonCand]=muon->getIsolationR03().hadEt;
-     MuonCand_ecalisor3[nMuonCand]=muon->getIsolationR03().emEt; 
-     MuonCand_trkisor3[nMuonCand]=muon->getIsolationR03().nTracks; 
-     MuonCand_hcalisor5[nMuonCand]=muon->getIsolationR05().hadEt; 
-     MuonCand_ecalisor5[nMuonCand]=muon->getIsolationR05().emEt;  
-     MuonCand_trkisor5[nMuonCand]=muon->getIsolationR05().nTracks;  
+     //     MuonCand_hcalisor3[nMuonCand]=muon->getIsolationR03().hadEt;
+     //     MuonCand_ecalisor3[nMuonCand]=muon->getIsolationR03().emEt; 
+     //     MuonCand_trkisor3[nMuonCand]=muon->getIsolationR03().nTracks; 
+     //     MuonCand_hcalisor5[nMuonCand]=muon->getIsolationR05().hadEt; 
+     //     MuonCand_ecalisor5[nMuonCand]=muon->getIsolationR05().emEt;  
+     //     MuonCand_trkisor5[nMuonCand]=muon->getIsolationR05().nTracks;  
 
 
      if(MuonCand_pt[nMuonCand] > highestptmuon)
@@ -442,21 +427,108 @@ void GammaGammaSleptonSlepton::analyze(const edm::Event& iEvent, const edm::Even
      nMuonCand++;
    }
 
-//    //2c: jets
-//     Handle<reco::CaloJetCollection> jets;
-//     iEvent.getByLabel("iterativeCone5CaloJets",jets);
-//     reco::CaloJetCollection::const_iterator jet;
-//    nJetCand=0;
-//    for( jet = jets->begin(); jet != jets->end() && nJetCand<JETMAX; ++ jet ) {
-//      JetCand_e[nJetCand]=jet->energy();
-//      JetCand_px[nJetCand]=jet->px();
-//      JetCand_py[nJetCand]=jet->py();
-//      JetCand_pz[nJetCand]=jet->pz();
-//      JetCand_phi[nJetCand]=jet->phi();
-//      JetCand_eta[nJetCand]=jet->eta();
-//      cout << "Filling jet cand " << nJetCand << endl;
-//      nJetCand++;
-//    }
+  //2c: jets
+  Handle<reco::CaloJetCollection> jets;
+  iEvent.getByLabel("sisCone5CaloJets",jets);
+  reco::CaloJetCollection::const_iterator jet;
+  nJetCand=0;
+  nJetCandE20=0;
+  for( jet = jets->begin(); jet != jets->end() && nJetCand<JETMAX; ++ jet ) {
+    JetCand_e[nJetCand]=jet->energy();
+    if(JetCand_e[nJetCand] > 20.0)
+      nJetCandE20++;
+    JetCand_px[nJetCand]=jet->px();
+    JetCand_py[nJetCand]=jet->py();
+    JetCand_pz[nJetCand]=jet->pz();
+    JetCand_phi[nJetCand]=jet->phi();
+    JetCand_eta[nJetCand]=jet->eta();
+    nJetCand++;
+  }
+  
+  //2c: tracks and vertexing
+  Handle<reco::TrackCollection> tracks; 
+  iEvent.getByLabel("generalTracks",tracks); 
+  reco::TrackCollection::const_iterator track; 
+  nTrackCand=0; 
+
+  edm::ESHandle<TransientTrackBuilder> theVtx;
+  iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theVtx);
+  //  vector < reco::TransientTrack > mutrks;
+  vector<TransientTrack> transmutrks; 
+  reco::TrackCollection * mutrks = new reco::TrackCollection;
+
+
+  // First get muon tracks
+  bool isMuon = false;
+  for( track = tracks->begin(); track != tracks->end() && nTrackCand<TRACKMAX; ++ track ) 
+    { 
+      isMuon = false;
+      for(int j = 0;j < nMuonCand; j++)
+	{
+	  if(MuonCandTrack_p[j] == track->p())
+	    {
+	      isMuon = true;
+	      mutrks->push_back( *track );
+	      TransientTrack tmptrk = (*theVtx).build( *track );
+	      transmutrks.push_back( tmptrk );
+	    }
+	}
+    }
+
+  // If 2 muons, make a vertex
+  if(transmutrks.size() > 1) 
+    { 
+      KalmanVertexFitter fitter(true); 
+      TransientVertex mumuVertex = fitter.vertex(transmutrks); 
+      MuMu_vtxx = mumuVertex.position().x(); 
+      MuMu_vtxy = mumuVertex.position().y(); 
+      MuMu_vtxz = mumuVertex.position().z(); 
+    } 
+  else 
+    { 
+      MuMu_vtxx = 0; 
+      MuMu_vtxy = 0; 
+      MuMu_vtxz = 0; 
+    } 
+
+  // Now go back and look at other tracks
+  isMuon = false;
+  for( track = tracks->begin(); track != tracks->end() && nTrackCand<TRACKMAX; ++ track )  
+    {  
+      isMuon = false; 
+      for(int j = 0;j < nMuonCand; j++) 
+        { 
+          if(MuonCandTrack_p[j] == track->p()) 
+            { 
+              isMuon = true; 
+	    }
+	}
+
+      if(isMuon == false)
+	{
+	  TrackCand_p[nTrackCand]=track->p();
+	  TrackCand_pt[nTrackCand]=track->pt();  
+	  TrackCand_px[nTrackCand]=track->px(); 
+	  TrackCand_py[nTrackCand]=track->py(); 
+	  TrackCand_pz[nTrackCand]=track->pz(); 
+	  TrackCand_phi[nTrackCand]=track->phi(); 
+	  TrackCand_eta[nTrackCand]=track->eta(); 
+	  TrackCand_vtxx[nTrackCand]=track->vertex().x();
+	  TrackCand_vtxy[nTrackCand]=track->vertex().y(); 
+	  TrackCand_vtxz[nTrackCand]=track->vertex().z(); 
+
+	  if(fabs(TrackCand_vtxz[nTrackCand] - MuMu_vtxz) < 1.0)
+	    MuMu_extratracksz10mm++;
+          if(fabs(TrackCand_vtxz[nTrackCand] - MuMu_vtxz) < 0.5) 
+            MuMu_extratracksz5mm++; 
+          if(fabs(TrackCand_vtxz[nTrackCand] - MuMu_vtxz) < 0.2) 
+            MuMu_extratracksz2mm++; 
+          if(fabs(TrackCand_vtxz[nTrackCand] - MuMu_vtxz) < 0.1) 
+            MuMu_extratracksz1mm++; 
+	  
+	  nTrackCand++; 
+	}
+    }
 
    // calculate something and fill a histogram:
    for(int imu=0; imu<nMuonCand; imu++){
