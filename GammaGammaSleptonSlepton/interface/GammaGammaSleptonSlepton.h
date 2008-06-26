@@ -187,6 +187,9 @@ private:
   double MuMu_vtxx;
   double MuMu_vtxy;
   double MuMu_vtxz;
+  double MuMu_vtxchi2dof;
+  int MuMu_vtxisvalid;
+  int MuMu_extratracksz100mm;
   int MuMu_extratracksz10mm; 
   int MuMu_extratracksz5mm; 
   int MuMu_extratracksz2mm; 
