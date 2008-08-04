@@ -241,7 +241,8 @@ void NewTertVertex::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
   // Make Transient tracks from RECO tracks
   edm::Handle<reco::TrackCollection> tks;
-  iEvent.getByLabel("pixelTracks", tks);
+  //  iEvent.getByLabel("pixelTracks", tks);
+  iEvent.getByLabel("generalTracks", tks); 
   edm::ESHandle<TransientTrackBuilder> theB;
   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theB);
   //do the conversion:
