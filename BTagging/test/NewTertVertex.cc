@@ -101,7 +101,7 @@ private:
   double primvtxposx, primvtxposy, primvtxposz;
 
   int jetnsecvtx, jetnfreetrks;
-  double jetsvbtag, jetsmbtag, jetjpbtag, jettrkbtag;
+  double jetsvbtag, jetsmbtag, jetsebtag, jetjpbtag, jettrkbtag;
 
   double jetbestsvtxchi2, jetbestsvtxx, jetbestsvtxy, jetbestsvtxz, jetbestsvtxmass, jetbestsvtxdxy;
   int jetbestsvtxntrk;
@@ -112,6 +112,9 @@ private:
   int jetbestsvtxtrks1add, jetbestsvtxtrks3add, jetbestsvtxtrks5add;
 
   int jetnum, evnum, evjetcount, evnfreetrks, evpvtxntrk;
+
+  int jethasD, jethasKS, jethasL, jethasB;
+  double jetDvtxx, jetDvtxy, jetDvtxz, jetKSvtxx, jetKSvtxy, jetKSvtxz, jetLvtxx, jetLvtxy, jetLvtxz, jetBvtxx, jetBvtxy, jetBvtxz;
 };
 
 
@@ -158,6 +161,7 @@ NewTertVertex::NewTertVertex(const edm::ParameterSet& iConfig)
   thetree->Branch("jetflavour",&jetflavour,"jetflavour/I");
   thetree->Branch("jettrkbtag",&jettrkbtag,"jettrkbtag/D"); 
   thetree->Branch("jetsmbtag",&jetsmbtag,"jetsmbtag/D"); 
+  thetree->Branch("jetsebtag",&jetsebtag,"jetsebtag/D");
   thetree->Branch("jetjpbtag",&jetjpbtag,"jetjpbtag/D");
   thetree->Branch("jetcorr",&jetcorr,"jetcorr/D"); 
   thetree->Branch("jetprimvtxntrk",&jetprimvtxntrk,"jetprimvtxntrk/I");
@@ -189,6 +193,23 @@ NewTertVertex::NewTertVertex(const edm::ParameterSet& iConfig)
   thetree->Branch("jetfreetrksvtxrxyz",&jetfreetrksvtxrxyz,"jetfreetrksvtxrxyz/D"); 
   thetree->Branch("jetfreetrkshasvtx",&jetfreetrkshasvtx,"jetfreetrkshasvtx/I"); 
 
+  thetree->Branch("jethasB",&jethasB,"jethasB/I");
+  thetree->Branch("jethasD",&jethasD,"jethasD/I");
+  thetree->Branch("jethasKS",&jethasKS,"jethasKS/I");
+  thetree->Branch("jethasL",&jethasL,"jethasL/I");
+
+  thetree->Branch("jetBvtxx",&jetBvtxx,"jetBvtxx/D"); 
+  thetree->Branch("jetBvtxy",&jetBvtxy,"jetBvtxy/D");  
+  thetree->Branch("jetBvtxz",&jetBvtxz,"jetBvtxz/D");  
+  thetree->Branch("jetDvtxx",&jetDvtxx,"jetDvtxx/D");
+  thetree->Branch("jetDvtxy",&jetDvtxy,"jetDvtxy/D"); 
+  thetree->Branch("jetDvtxz",&jetDvtxz,"jetDvtxz/D"); 
+  thetree->Branch("jetKSvtxx",&jetKSvtxx,"jetKSvtxx/D"); 
+  thetree->Branch("jetKSvtxy",&jetKSvtxy,"jetKSvtxy/D");  
+  thetree->Branch("jetKSvtxz",&jetKSvtxz,"jetKSvtxz/D");  
+  thetree->Branch("jetLvtxx",&jetLvtxx,"jetLvtxx/D"); 
+  thetree->Branch("jetLvtxy",&jetLvtxy,"jetLvtxy/D");  
+  thetree->Branch("jetLvtxz",&jetLvtxz,"jetLvtxz/D");  
 
   evnum = 0;
 }
@@ -211,7 +232,7 @@ void NewTertVertex::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 		  
   edm::Handle<HepMCProduct> evt;
   iEvent.getByLabel("source", evt);
-  //  HepMC::GenEvent * myGenEvent = new  HepMC::GenEvent(*(evt->GetEvent())); 
+  HepMC::GenEvent * myGenEvent = new  HepMC::GenEvent(*(evt->GetEvent())); 
 
   // Get the Jet collection from the event
   edm::Handle<reco::CaloJetCollection> pJets;
@@ -234,6 +255,11 @@ void NewTertVertex::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   iEvent.getByLabel("softMuonBJetTags", smbTagHandle);  
   const reco::JetTagCollection & smbTags = *(smbTagHandle.product());  
 
+  // Get Soft electron tags 
+  edm::Handle<reco::JetTagCollection> sebTagHandle;   
+  iEvent.getByLabel("softElectronBJetTags", sebTagHandle);   
+  const reco::JetTagCollection & sebTags = *(sebTagHandle.product());   
+
   // Get secondary vertex infos
   edm::Handle<reco::SecondaryVertexTagInfoCollection> secvtxTagHandle;
   iEvent.getByLabel("secondaryVertexTagInfos", secvtxTagHandle);
@@ -241,8 +267,7 @@ void NewTertVertex::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
   // Make Transient tracks from RECO tracks
   edm::Handle<reco::TrackCollection> tks;
-  //  iEvent.getByLabel("pixelTracks", tks);
-  iEvent.getByLabel("generalTracks", tks); 
+  iEvent.getByLabel("pixelTracks", tks);
   edm::ESHandle<TransientTrackBuilder> theB;
   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",theB);
   //do the conversion:
@@ -340,7 +365,6 @@ void NewTertVertex::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         trackIPTagInfos->begin(); assocjets != trackIPTagInfos->end(); 
       ++assocjets)  
     {
-
       std::vector<std::size_t> indices = 
         assocjets->sortedIndexes(sortCriterium); 
        
@@ -364,7 +388,15 @@ void NewTertVertex::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
       jetbestsvtxtrks1add = 0; 
       jetbestsvtxtrks3add = 0;
       jetbestsvtxtrks5add = 0;
-
+      jethasB = 0;
+      jethasD = 0;
+      jethasKS = 0;
+      jethasL = 0;
+      jetDvtxx = 0.0; jetDvtxy = 0.0; jetDvtxz = 0.0;
+      jetKSvtxx = 0.0; jetKSvtxy = 0.0; jetKSvtxz = 0.0; 
+      jetLvtxx = 0.0; jetLvtxy = 0.0; jetLvtxz = 0.0; 
+      
+      
       trks.clear();
       jetfreetrks.clear();
       bool jetfreetrack = true;
@@ -423,11 +455,74 @@ void NewTertVertex::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 
       jetcorr = jetcorrector->correctionXYZT(jetpx,jetpy,jetpz,jete); 
 
+      // Check for true long-lived particles 
+      for ( HepMC::GenEvent::particle_iterator p = myGenEvent->particles_begin();   
+            p != myGenEvent->particles_end(); ++p ) {   
+        if ( abs((*p)->pdg_id()) == 310 || abs((*p)->pdg_id()) == 3122 ||
+	     abs((*p)->pdg_id()) == 421 || abs((*p)->pdg_id()) == 411 || 
+	     abs((*p)->pdg_id()) == 521 || abs((*p)->pdg_id()) == 511)	  
+	  {   
+	    double longeta = (*p)->momentum().eta();
+	    double longphi = (*p)->momentum().phi();
+	    double longdr = sqrt((longeta-jeteta)*(longeta-jeteta) + (longphi-jetphi)*(longphi-jetphi));
+	    double longvtxx = 0.0; double longvtxy = 0.0; double longvtxz = 0.0;
+	    if((*p)->end_vertex())
+	      {
+		longvtxx = (*p)->end_vertex()->position().x();
+		longvtxy = (*p)->end_vertex()->position().y();
+		longvtxz = (*p)->end_vertex()->position().z();
+	      }
+	    if(longdr < 0.5)
+	      {
+		int longid = (*p)->pdg_id();   
+		if(abs(longid) == 310)
+		  {
+		    jethasKS++;
+		    jetKSvtxx = longvtxx;
+		    jetKSvtxy = longvtxy;
+		    jetKSvtxz = longvtxz;
+		  }
+		if(abs(longid) == 3122)
+		  {
+		    jethasL++;
+		    jetLvtxx = longvtxx; 
+                    jetLvtxy = longvtxy; 
+                    jetLvtxz = longvtxz; 
+		  }
+		if(abs(longid) == 421 || abs(longid) == 411)
+		  {
+		    jethasD++;
+                    jetDvtxx = longvtxx;  
+                    jetDvtxy = longvtxy;  
+                    jetDvtxz = longvtxz;  
+		  }
+		if(abs(longid) == 521 || abs(longid) == 511)
+		  {
+		    jethasB++;
+		    jetBvtxx = longvtxx;
+		    jetBvtxy = longvtxy;
+		    jetBvtxz = longvtxz;
+		  }
+	      }
+	  }   
+      }   
+
+
+
       for (int i = 0; i != smbTags.size(); ++i) 
 	{
 	  if((smbTags[i].first->eta() == jeteta) && (smbTags[i].first->phi() == jetphi))
-	    jetsmbtag = smbTags[i].second;
+	    {
+	      jetsmbtag = smbTags[i].second;
+	    }
 	}
+
+      for (int i = 0; i != sebTags.size(); ++i)  
+        { 
+          if((sebTags[i].first->eta() == jeteta) && (sebTags[i].first->phi() == jetphi)) 
+            jetsebtag = sebTags[i].second; 
+        } 
+
       
       for (int i = 0; i != trkTags.size(); ++i)  
 	{ 
