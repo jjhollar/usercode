@@ -1,0 +1,18 @@
+> tar -xvf lpair.tar.gz 
+
+Move CMS-specific files (Makefile, ilpair-cms-pp.f, lpair-cms-mumu-pp.card) to the top-level directory
+
+Set ENVVARS to pick up the cernlibs:
+
+> setenv CERN /cern
+> setenv PATH ${PATH}:/cern/pro/bin
+> cd source
+
+Compile and run
+
+> g77 -c *.* 
+> ar -r libilpairg.a *.o
+> mv libilpairg.a ../. 
+> cd .. 
+> make lpair* 
+> ./lpair.exe < lpair-cms-mumu-pp.card
