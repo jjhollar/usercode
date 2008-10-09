@@ -3,10 +3,6 @@
 # Jonathan Hollar LLNL Sept. 25, 2008
 
 import os, string, sys, posix, tokenize, array, getopt
-import ConfdbSourceParser
-import ConfdbSQLModuleLoader
-import ConfdbOracleModuleLoader
-import ConfdbConfigurationComponentParser
 import FWCore.ParameterSet.Config as cms
 import CMSSWold_cff as oldconf
 
