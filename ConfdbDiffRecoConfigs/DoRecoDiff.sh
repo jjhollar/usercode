@@ -11,7 +11,7 @@ fi
 
 
 CUR_DIR=`pwd`
-THE_DIR=`scramv1 list | grep $1 | cut -f 2 -d ">" | grep afs` 
+THE_DIR=`scram list -c CMSSW $1 | awk '{print $3}'`
 cd $THE_DIR
 eval `scramv1 runtime -sh`
 cd $CUR_DIR
