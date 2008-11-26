@@ -29,7 +29,13 @@ class ConfdbDiffOfflineConfig:
         myfilters2 = self.process2.filters_()
         myservices = oldconf.process.services_()
         myservices2 = self.process2.services_()
-
+        myoutputmodules = oldconf.process.outputModules_()
+        myoutputmodules2 = self.process2.outputModules_()
+        myessources = oldconf.process.es_sources_()
+        myessources2 = self.process2.es_sources_() 
+        myesproducers = oldconf.process.es_producers_()
+        myesproducers2 = self.process2.es_producers_()
+        
         procname = 'self.process2'
         componenttype = ''
         rel1 = self.oldrelname
@@ -50,6 +56,19 @@ class ConfdbDiffOfflineConfig:
             componenttype = str(value.type_())            
             self.CompareComponents(procname,name,value,componenttype,rel1,rel2,1) 
 
+        for name, value in myoutputmodules.iteritems():
+            componenttype = str(value.type_())
+            self.CompareComponents(procname,name,value,componenttype,rel1,rel2,1)
+                                    
+        for name, value in myessources.iteritems():
+            componenttype = str(value.type_())
+            self.CompareComponents(procname,name,value,componenttype,rel1,rel2,1)
+                                    
+        for name, value in myesproducers.iteritems():
+            componenttype = str(value.type_())
+            self.CompareComponents(procname,name,value,componenttype,rel1,rel2,1)
+                                    
+
         #OK, now go backwards and look for parameters that were added
         procname = 'oldconf.process'
         rel1 = self.newrelname
@@ -66,6 +85,20 @@ class ConfdbDiffOfflineConfig:
         for name, value in myservices2.iteritems():
             componenttype = str(value.type_())            
             self.CompareComponents(procname,name,value,componenttype,rel2,rel1,0)   
+
+        for name, value in myoutputmodules2.iteritems():
+            componenttype = str(value.type_())
+            self.CompareComponents(procname,name,value,componenttype,rel2,rel1,0)
+                                    
+
+        for name, value in myessources2.iteritems():
+            componenttype = str(value.type_())
+            self.CompareComponents(procname,name,value,componenttype,rel2,rel1,0)
+                                    
+        for name, value in myesproducers2.iteritems():
+            componenttype = str(value.type_())
+            self.CompareComponents(procname,name,value,componenttype,rel2,rel1,0)
+                                    
 
 #        print '\n============================================================================='
 #        print 'Found ' + str(self.nchanges) + ' parameters that were changed, added, or removed'
