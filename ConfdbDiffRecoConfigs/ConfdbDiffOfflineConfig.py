@@ -19,10 +19,17 @@ class ConfdbDiffOfflineConfig:
 
     def CompareConfigs(self):
         
+#        thecfffile = "Configuration.StandardSequences.Reconstruction_cff"
+#        thecfffile = "Configuration.StandardSequences.Digi_cff"
+#        thecfffile = "Configuration.StandardSequences.Simulation_cff"
+        thecfffile = "Configuration.StandardSequences.Generator_cff"
+#        thecfffile = "HLTrigger.Configuration.HLT_2E30_cff")
+        
+        
         # Now create a process and construct the command to extend it with the py-cfi
         self.process2 = cms.Process("MyNewProcess")
-        self.process2.load("Configuration.StandardSequences.Reconstruction_cff")
-
+        self.process2.load(thecfffile)
+        
         myproducers = oldconf.process.producers_()
         myproducers2 = self.process2.producers_()
         myfilters = oldconf.process.filters_()
