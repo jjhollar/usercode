@@ -6,13 +6,11 @@
 #
 # Jonathan Hollar LLNL March 13, 2009
 
-import os, string, sys, posix, tokenize, array, getopt
+import os, string, sys, posix, tokenize, array, getopt, operator
 
 sys.path.append(os.environ.get("CMS_PATH") + "/sw/slc4_ia32_gcc345/external/py2-cx-oracle/4.2/lib/python2.4/site-packages/") 
  
 import cx_Oracle 
-
-import FWCore.ParameterSet.Config as cms
 
 def main(argv):
 
@@ -115,8 +113,10 @@ class ConfdbQueryCVSTags:
                 if (not dirname in self.alreadyadded):
                     self.tagtuple.append((str(tag),str(dirname)))
                     self.alreadyadded.append(str(dirname))
+
+        sortedtagtuple = sorted(self.tagtuple, key=operator.itemgetter(1))
                                 
-        for thecvstag, thepackagesubsysname in self.tagtuple:                        
+        for thecvstag, thepackagesubsysname in sortedtagtuple:                        
             if(thecvstag != "V00-00-00"):
                 print str(thecvstag).ljust(12) + "\t" + str(thepackagesubsysname).ljust(50) 
         self.connection.commit() 
