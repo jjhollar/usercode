@@ -118,7 +118,7 @@ class ConfdbQueryCVSTags:
                                 
         for thecvstag, thepackagesubsysname in self.tagtuple:                        
             if(thecvstag != "V00-00-00"):
-                print thecvstag + "\t" + str(thepackagesubsysname)
+                print str(thecvstag).ljust(12) + "\t" + str(thepackagesubsysname).ljust(50) 
         self.connection.commit() 
         self.connection.close() 
             
