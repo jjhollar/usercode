@@ -22,13 +22,22 @@
 #include "DataFormats/Common/interface/Ref.h"
 #include "DataFormats/JetReco/interface/Jet.h"
 #include "DataFormats/BTauReco/interface/JetTag.h"
+#include "DataFormats/TrackReco/interface/Track.h"   
+#include "DataFormats/TrackReco/interface/TrackFwd.h"  
 #include "DataFormats/MuonReco/interface/Muon.h"
+#include "DataFormats/MuonReco/interface/MuonFwd.h"    
 #include "DataFormats/JetReco/interface/CaloJetCollection.h"
 #include "DataFormats/JetReco/interface/CaloJet.h"
 
-
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "SimDataFormats/HepMCProduct/interface/HepMCProduct.h"
+
+#include "DataFormats/FP420Cluster/interface/RecoFP420.h" 
+#include "DataFormats/FP420Cluster/interface/RecoCollectionFP420.h"
+#include "DataFormats/FP420Cluster/interface/TrackFP420.h"  
+#include "DataFormats/FP420Cluster/interface/TrackCollectionFP420.h" 
+#include "DataFormats/FP420Cluster/interface/ClusterCollectionFP420.h" 
+#include "DataFormats/FP420Cluster/interface/ClusterFP420.h"  
 
 #include <TFile.h>
 #include <TH1D.h>
@@ -133,6 +142,12 @@ private:
   double GenNeutCand_pt[10];
   double GenNeutCand_phi[10];
   double GenNeutCand_mass[10];
+
+  int nProtCand;
+  double ProtCand_e[10];
+  double ProtCand_x[10];
+  double ProtCand_y[10];
+  int ProtCand_direction[10];
 
   int nGenPhotCand; 
   double GenPhotCand_px[10]; 
@@ -248,8 +263,12 @@ GammaGammaSleptonSlepton::GammaGammaSleptonSlepton(const edm::ParameterSet& iCon
   smalltree->Branch("GenPhotCand_eta",GenPhotCand_eta,"GenPhotCand_eta[nGenPhotCand]/D"); 
   smalltree->Branch("GenPhotCand_phi",GenPhotCand_phi,"GenPhotCand_phi[nGenPhotCand]/D"); 
   smalltree->Branch("GenPhotCand_e",GenPhotCand_e,"GenPhotCand_e[nGenPhotCand]/D"); 
-
-
+  
+  smalltree->Branch("nProtCand",&nProtCand,"nProtCand/I");
+  smalltree->Branch("ProtCand_e",ProtCand_e,"ProtCand_e[nProtCand]/D"); 
+  smalltree->Branch("ProtCand_x",ProtCand_x,"ProtCand_x[nProtCand]/D"); 
+  smalltree->Branch("ProtCand_y",ProtCand_y,"ProtCand_y[nProtCand]/D"); 
+  smalltree->Branch("ProtCand_direction",ProtCand_direction,"ProtCand_direction[nProtCand]/I");
 
   smalltree->Branch("GenMuMu_mass",&GenMuMu_mass,"GenMuMu_mass/D");
   smalltree->Branch("MuMu_mass",&MuMu_mass,"MuMu_mass/D");
@@ -296,11 +315,6 @@ void GammaGammaSleptonSlepton::analyze(const edm::Event& iEvent, const edm::Even
       MCPar_pz[nMCPar]=(*p)->momentum().z();
       //       MCPar_e[nMCPar]=(*p)->momentum().e();//(*p)->energy() does not work!!;
       MCPar_phi[nMCPar]=atan2(MCPar_py[nMCPar],MCPar_px[nMCPar]);
-      double thetamc = acos((MCPar_pz[nMCPar])/
-			    ((MCPar_px[nMCPar]*MCPar_px[nMCPar])+ 
-			     (MCPar_py[nMCPar]*MCPar_py[nMCPar])+
-			     (MCPar_pz[nMCPar]*MCPar_pz[nMCPar])));
-      //       MCPar_eta[nMCPar]=-1.0 * log(tan(thetamc/2.0));
       MCPar_eta[nMCPar] = (*p)->momentum().eta();
       MCPar_pdgid[nMCPar]=(*p)->pdg_id();
       MCPar_mass[nMCPar]=(*p)->momentum().m();
@@ -382,7 +396,74 @@ void GammaGammaSleptonSlepton::analyze(const edm::Event& iEvent, const edm::Even
       nMCPar++;
     }
   }
- 
+
+  nProtCand = 0;
+  Handle<RecoCollectionFP420> recocollSrc; 
+  iEvent.getByLabel("FP420Reco" , recocollSrc); 
+  int dn0=3;  
+  for (int number_detunits=1; number_detunits<dn0; number_detunits++) 
+    { 
+      int StID = number_detunits; // =1 for +420m set up , =2 for -420m set up 
+      
+      std::vector<RecoFP420> zcollector; 
+      zcollector.clear(); 
+      
+      RecoCollectionFP420::Range toutputRange; 
+      toutputRange = recocollSrc->get(StID); 
+      
+      // fill output in zcollector vector (for may be sorting? or other checks) 
+      RecoCollectionFP420::ContainerIterator sort_begin = toutputRange.first; 
+      RecoCollectionFP420::ContainerIterator sort_end = toutputRange.second; 
+
+      for ( ;sort_begin != sort_end; ++sort_begin )
+	{ 
+	  zcollector.push_back(*sort_begin); 
+	} 
+
+      vector<RecoFP420>::const_iterator simHitIter = zcollector.begin(); 
+      vector<RecoFP420>::const_iterator simHitIterEnd = zcollector.end(); 
+      // loop in #tracks 
+      for (;simHitIter != simHitIterEnd; ++simHitIter) 
+	{ 
+	  const RecoFP420 itrack = *simHitIter; 
+	  
+	  std::cout << "   itrack.direction():    " << itrack.direction() << std::endl; 
+	  std::cout << "   itrack.e0():    " << itrack.e0() << std::endl; 
+	  std::cout << "   itrack.x0():    " << itrack.x0() << std::endl; 
+	  std::cout << "   itrack.y0():    " << itrack.y0() << std::endl; 
+	  std::cout << "   itrack.tx0():    " << itrack.tx0() << std::endl; 
+	  std::cout << "   itrack.ty0():    " << itrack.ty0() << std::endl; 
+	  std::cout << "   itrack.q20():    " << itrack.q20() << std::endl; 
+
+	  ProtCand_e[nProtCand] = itrack.e0();
+	  ProtCand_x[nProtCand] = itrack.x0(); 
+          ProtCand_y[nProtCand] = itrack.y0(); 
+	  ProtCand_direction[nProtCand] = itrack.direction();
+
+	  nProtCand++;
+
+	  long double tx,ty,th,pfi,pfigrad,eta1= 0,recovtxX,recovtxY; 
+
+	  recovtxX=itrack.x0()/1000.; recovtxY=itrack.y0()/1000.; // goes to mm 
+	  tx = itrack.tx0() / 1000000.; ty = itrack.ty0() / 1000000.; // goes to radians 
+	  th  = std::sqrt((tx*tx) + (ty*ty)); 
+	  pfi     = std::atan2(tx,ty); if (pfi < 0.) pfi += (2.0 * 3.14159); 
+	  eta1 = -std::log(std::tan(th/2)); 
+
+	  long double Recop1 = 7000.-itrack.e0(); 
+	  double Recoxi1 = 1.-Recop1/7000.; 
+	  // cross-checks: 
+	  long double ccc = (1.-std::cos(th)); 
+	  long double Recot = 2.*7000.*Recop1*ccc; 
+	  long double Recop2 = 7000.; 
+	  if(ccc !=0.) Recop2 = itrack.q20()/(2.*7000.*ccc); 
+	  double ddddddp = Recop1-Recop2; 
+	  double ddddddt = itrack.q20()-Recot; 
+	  double Recoxi2 = 1.-Recop2/7000.; 
+	}// track loop 
+
+    }
+
    Handle<reco::MuonCollection> muons;
    iEvent.getByLabel("muons",muons);
    reco::MuonCollection::const_iterator muon;

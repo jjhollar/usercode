@@ -15,6 +15,12 @@
 <use name=DataFormats/Candidate>
 <use name=DataFormats/HepMCCandidate>
 <use name=DataFormats/JetReco>
+<use name=DataFormats/RecoFP420> 
+<use name=DataFormats/RecoCollectionFP420>  
+<use name=DataFormats/TrackFP420>  
+<use name=DataFormats/TrackCollectionFP420>
+<use name=DataFormats/ClusterCollectionFP420> 
+<use name=DataFormats/FP420Cluster>
 <use name=SimDataFormats/HepMCProduct>
 <use name=RecoBTag/MCTools>
 
