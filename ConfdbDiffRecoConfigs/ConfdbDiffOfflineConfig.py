@@ -19,10 +19,10 @@ class ConfdbDiffOfflineConfig:
 
     def CompareConfigs(self):
         
-#        thecfffile = "Configuration.StandardSequences.Reconstruction_cff"
+        thecfffile = "Configuration.StandardSequences.Reconstruction_cff"
 #        thecfffile = "Configuration.StandardSequences.Digi_cff"
 #        thecfffile = "Configuration.StandardSequences.Simulation_cff"
-        thecfffile = "Configuration.StandardSequences.Generator_cff"
+#        thecfffile = "Configuration.StandardSequences.Generator_cff"
 #        thecfffile = "HLTrigger.Configuration.HLT_2E30_cff")
         
         
@@ -166,45 +166,42 @@ class ConfdbDiffOfflineConfig:
                             self.nchanges = self.nchanges + 1
                                                                                                                          
             except AttributeError:
-                if(str(paramval).find("\n") != -1):
-                    formatparamval = str(paramval).replace("\n"," ")
-                    formatparamval = str(formatparamval).replace("     "," ")
-                else:
-                    formatparamval = str(paramval)
-                if(str(newparamval).find("\n") != -1):
-                    formatnewparamval = str(newparamval).replace("\n"," ")
-                    formatnewparamval = str(formatnewparamval).replace("     "," ")
-                else:
-                    formatnewparamval = str(newparamval)
-
-                    
-                if(paramval.configTypeName == "VPSet"):
-                    newvpsetval = newparamval.value()
-                    if(str(vpsetval) != str(newvpsetval)):
-                        if(str(vpsetval).find("\n") != -1):
-                            formatvpsetval = str(vpsetval).replace("\n"," ")
-                            formatvpsetval = str(formatvpsetval).replace("     "," ")
-                        else:
-                            formatvpsetval = str(vpsetval)
-                            if(str(newvpsetval).find("\n") != -1):
-                                formatnewvpsetval = str(newvpsetval).replace("\n"," ")
-                                formatnewvpsetval = str(formatnewvpsetval).replace("     "," ")
-                            else:
-                                formatnewvpsetval = str(newvpsetval)
+                if(paramval.configTypeName() == "VPSet"):
+                    #                    if(str(vpsetval) != str(newvpsetval)):
+                    if(str(vpsetval).find("\n") != -1):
+                        formatvpsetval = str(vpsetval).replace("\n"," ")
+                        formatvpsetval = str(formatvpsetval).replace("     "," ")
+                    else:
+                        formatvpsetval = str(vpsetval)
+                        #                        if(str(newvpsetval).find("\n") != -1):
+                        #                                formatnewvpsetval = str(newvpsetval).replace("\n"," ")
+                        #                                formatnewvpsetval = str(formatnewvpsetval).replace("     "," ")
+                        #                            else:
+                        #                                formatnewvpsetval = str(newvpsetval)
                                 
                     if(recorddiffs == 1):
                         print "| (!" + componenttype + ") | " + str(name) + "." + str(paramname) + " | " + str(formatvpsetval)  + " | " + str(formatnewvpsetval) + " | "
                     else:
                         print "| (!" + componenttype + ") | " + str(name) + "." + str(paramname) + " | " + str(formatnewvpsetval)  + " | " + str(formatvpsetval) + " | "
                         self.nchanges = self.nchanges + 1
-                                                                                                                                                                                                                                                                            
+
                 elif(paramval.configTypeName() != "PSet"):
+                    if(str(paramval).find("\n") != -1):
+                        formatparamval = str(paramval).replace("\n"," ")
+                        formatparamval = str(formatparamval).replace("     "," ")
+                    else:
+                        formatparamval = str(paramval)
+                        #                    if(str(newparamval).find("\n") != -1):
+                        #                        formatnewparamval = str(newparamval).replace("\n"," ")
+                        #                        formatnewparamval = str(formatnewparamval).replace("     "," ")
+                        #                    else:
+                        #                        formatnewparamval = str(newparamval)
                     if(recorddiffs == 1):
                         print "| (!" + componenttype + ") | " + str(name) + "." + str(paramname) + " | " + str(formatparamval)  + " | " + str(formatnewparamval) + " | "
                     else:
                         print "| (!" + componenttype + ") | " + str(name) + "." + str(paramname) + " | " + str(formatnewparamval)  + " | " + str(formatparamval) + " | "
                     self.nchanges = self.nchanges + 1
-
+                                            
 if __name__ == "__main__":
 	main(sys.argv[1:])
 	

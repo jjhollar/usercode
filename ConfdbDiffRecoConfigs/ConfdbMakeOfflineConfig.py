@@ -7,10 +7,10 @@ import FWCore.ParameterSet.Config as cms
 
 def main(argv):
 
-#    thecfffile = "Configuration.StandardSequences.Reconstruction_cff"
+    thecfffile = "Configuration.StandardSequences.Reconstruction_cff"
 #    thecfffile = "Configuration.StandardSequences.Digi_cff"
 #    thecfffile = "Configuration.StandardSequences.Simulation_cff"
-    thecfffile = "Configuration.StandardSequences.Generator_cff"
+#    thecfffile = "Configuration.StandardSequences.Generator_cff"
 #    thecfffile = "HLTrigger.Configuration.HLT_2E30_cff") 
         
 
