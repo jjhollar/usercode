@@ -13,7 +13,7 @@
 //
 // Original Author:  Tommaso Boccali
 //         Created:  Tue Nov 25 15:50:50 CET 2008
-// $Id: MuTestPerformanceFW_ES.cc,v 1.1 2009/03/06 10:13:20 tboccali Exp $
+// $Id: MuTestPerformanceFW_ES.cc,v 1.1 2009/09/28 13:03:03 jjhollar Exp $
 //
 //
 
@@ -204,6 +204,9 @@ MuTestPerformanceFW_ES::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
 	  getEff(pt, eta, phi, chg, standaloneMuon);
 	  getEffError(pt, eta, phi, chg, standaloneMuon); 
+          getEff(pt, eta, phi, chg, tracking); 
+          getEffError(pt, eta, phi, chg, tracking);  
+
 
 	  /* Fill a histogram of the pT spectrum for all true muons */
           hMCtruth->Fill(pt); 
