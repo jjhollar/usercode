@@ -1,0 +1,17 @@
+import FWCore.ParameterSet.Config as cms
+
+MuonPerformanceESProducer_1 = cms.ESProducer("MuonPerformanceESProducer",
+# this is what it makes available
+    ComponentName = cms.string('GlobalMuon'),
+# this is where it gets the payload from                                                
+    PayloadName = cms.string('GLBMU_T'),
+    WorkingPointName = cms.string('GLBMU_WP')
+)
+
+
+    
+
+
+
+
+
