@@ -8,7 +8,7 @@
 
 import os, string, sys, posix, tokenize, array, getopt, operator
 
-sys.path.append(os.environ.get("CMS_PATH") + "/sw/slc4_ia32_gcc345/external/py2-cx-oracle/4.2/lib/python2.4/site-packages/") 
+sys.path.append("/afs/cern.ch/user/j/jjhollar/public/")
  
 import cx_Oracle 
 
@@ -119,7 +119,6 @@ class ConfdbQueryCVSTags:
         for thecvstag, thepackagesubsysname in sortedtagtuple:                        
             if(thecvstag != "V00-00-00"):
                 print str(thecvstag).ljust(12) + "\t" + str(thepackagesubsysname).ljust(50) 
-        self.connection.commit() 
         self.connection.close() 
             
 if __name__ == "__main__": 
