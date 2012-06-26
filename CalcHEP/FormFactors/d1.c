@@ -1,0 +1,59 @@
+/*******************************
+*    CalcHEP version 2.5.1   *
+*******************************/
+#include<math.h>
+#define Real double
+#include"num_in.h"
+#include"num_out.h"
+#include <stdio.h> // needed for printf tests
+
+typedef Real (DNN)(Real * , int *);
+ typedef Real (FNN)(void);
+extern FNN F1_ext,F2_ext,F3_ext,F4_ext,F5_ext,F6_ext;
+static FNN *Farr[6]={&F1_ext,&F2_ext,&F3_ext,&F4_ext,&F5_ext,&F6_ext};
+extern DNN S1_ext;
+//
+extern double DkappA,LambA; 
+extern double a0w,aCw;
+ double DkappA,LambA; 
+ double a0w,aCw;
+//
+Real S1_ext(Real * momenta,int * err)
+{Real  ans=0;
+Real s0max=0;
+int i;
+Real mass[3],Q[3];
+Real* V=va_ext;
+double width[3];
+ for(i=0;i<nin_ext;i++) s0max+=momenta[4*i];
+width[2]=0.;
+mass[2]=V[10]; Q[2]=mass[2]*mass[2]-sqrMom(nin_ext,"\1\3",momenta);
+width[1]=0.;
+mass[1]=V[10]; Q[1]=mass[1]*mass[1]-sqrMom(nin_ext,"\1\4",momenta);
+//
+// JH - Lambda = 500GeV
+// double Lambda2 = 4.e+6; // Lambda^2
+ double Lambda2 = 2.5e+5; // Lambda^2 
+
+ double ss = 4.*momenta[0]*momenta[4];
+ // JH - power 2.5
+ // double FormFac = pow(1.0+ss/Lambda2,2.);
+ double FormFac = pow(1.0+ss/Lambda2,2.5);
+
+ //
+ DkappA = V[4]/FormFac;
+ LambA = V[5]/FormFac;
+ a0w = V[6]/FormFac;
+ aCw = V[7]/FormFac;
+ //
+  printf("DkappA=%g, LambdA=%g, a0w=%g, aCw=%g\ns=%f\n",DkappA,LambA,a0w,aCw,ss);
+ //
+
+*err=*err|prepDen(2, BWrange_ext*BWrange_ext, s0max,mass,width, Q);
+for(i=0;i<6;i++) 
+{ Real r=Farr[i]();
+  if(r>Fmax) Fmax=r;
+  ans+=r;
+}
+return ans;
+}
